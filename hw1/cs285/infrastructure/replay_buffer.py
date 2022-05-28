@@ -1,3 +1,4 @@
+import numpy as np
 from cs285.infrastructure.utils import *
 
 
@@ -18,7 +19,7 @@ class ReplayBuffer(object):
         self.terminals = None
 
     def __len__(self):
-        if self.obs:
+        if self.obs is not None:
             return self.obs.shape[0]
         else:
             return 0
@@ -41,43 +42,44 @@ class ReplayBuffer(object):
             self.next_obs = next_observations[-self.max_size:]
             self.terminals = terminals[-self.max_size:]
         else:
-            self.obs = np.concatenate([self.obs, observations])[-self.max_size:]
+            self.obs = np.concatenate([self.obs,
+                                       observations])[-self.max_size:]
             self.acs = np.concatenate([self.acs, actions])[-self.max_size:]
             if concat_rew:
-                self.rews = np.concatenate(
-                    [self.rews, rewards]
-                )[-self.max_size:]
+                self.rews = np.concatenate([self.rews,
+                                            rewards])[-self.max_size:]
             else:
                 if isinstance(rewards, list):
                     self.rews += rewards
                 else:
                     self.rews.append(rewards)
                 self.rews = self.rews[-self.max_size:]
-            self.next_obs = np.concatenate(
-                [self.next_obs, next_observations]
-            )[-self.max_size:]
-            self.terminals = np.concatenate(
-                [self.terminals, terminals]
-            )[-self.max_size:]
+            self.next_obs = np.concatenate([self.next_obs, next_observations
+                                            ])[-self.max_size:]
+            self.terminals = np.concatenate([self.terminals,
+                                             terminals])[-self.max_size:]
 
     ########################################
     ########################################
 
     def sample_random_data(self, batch_size):
-        assert (
-                self.obs.shape[0]
-                == self.acs.shape[0]
-                == self.rews.shape[0]
-                == self.next_obs.shape[0]
-                == self.terminals.shape[0]
-        )
+        assert (self.obs.shape[0] == self.acs.shape[0] == self.rews.shape[0] ==
+                self.next_obs.shape[0] == self.terminals.shape[0])
 
-        ## TODO return batch_size number of random entries from each of the 5 component arrays above
+        ## DONE return batch_size number of random entries from each of the 5 component arrays above
         ## HINT 1: use np.random.permutation to sample random indices
         ## HINT 2: return corresponding data points from each array (i.e., not different indices from each array)
         ## HINT 3: look at the sample_recent_data function below
+        indices = np.random.permutation(np.arange(len(self),
+                                                  dtype=np.int32))[:batch_size]
 
-        return TODO, TODO, TODO, TODO, TODO
+        return (
+            self.obs[indices],
+            self.acs[indices],
+            self.rews[indices],
+            self.next_obs[indices],
+            self.terminals[indices],
+        )
 
     def sample_recent_data(self, batch_size=1):
         return (
