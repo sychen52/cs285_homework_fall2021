@@ -96,13 +96,15 @@ class MLPPolicy(BasePolicy, nn.Module, metaclass=abc.ABCMeta):
     # through it. For example, you can return a torch.FloatTensor. You can also
     # return more flexible objects, such as a
     # `torch.distributions.Distribution` object. It's up to you!
-    def forward(self, observation: torch.FloatTensor) -> Any:
+    def forward(
+            self, observation: torch.FloatTensor
+    ) -> torch.distributions.Distribution:
         if self.discrete:
             return torch.distributions.categorical.Categorical(
                 logits=self.logits_na(observation))
         else:
-            return torch.distributions.normal.Normal(
-                self.mean_net(observation), torch.exp(self.logstd))
+            return torch.distributions.multivariate_normal.MultivariateNormal(
+                self.mean_net(observation), torch.diag(torch.exp(self.logstd)))
 
 
 #####################################################
@@ -122,9 +124,13 @@ class MLPPolicySL(MLPPolicy):
                acs_labels_na=None,
                qvals=None):
         # DONE: update the policy and return the loss
-        dist = self.__call__(torch.as_tensor(observations, device=ptu.device))
-        loss = self.loss(dist.mean, torch.as_tensor(actions,
-                                                    device=ptu.device))
+        dist = self(torch.as_tensor(observations, device=ptu.device))
+        log_prob = dist.log_prob(torch.as_tensor(actions, device=ptu.device))
+        loss = self.loss(torch.as_tensor(1), torch.exp(log_prob)).sum()
+        print(loss.item())
+        self.optimizer.zero_grad()
+        loss.backward()
+        self.optimizer.step()
         return {
             # You can add extra logging information here, but keep this line
             'Training Loss': ptu.to_numpy(loss),
