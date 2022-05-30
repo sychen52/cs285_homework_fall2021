@@ -81,10 +81,12 @@ class MLPPolicy(BasePolicy, nn.Module, metaclass=abc.ABCMeta):
             observation = obs[None]
 
         # DONE return the action that the policy prescribes
-        action_dist = self(
-            torch.as_tensor(observation,
-                            dtype=torch.float32,
-                            device=ptu.device))
+        self.eval()
+        with torch.no_grad():
+            action_dist = self(
+                torch.as_tensor(observation,
+                                dtype=torch.float32,
+                                device=ptu.device))
         return ptu.to_numpy(action_dist.sample())
 
     # update/train this policy
@@ -96,15 +98,13 @@ class MLPPolicy(BasePolicy, nn.Module, metaclass=abc.ABCMeta):
     # through it. For example, you can return a torch.FloatTensor. You can also
     # return more flexible objects, such as a
     # `torch.distributions.Distribution` object. It's up to you!
-    def forward(
-            self, observation: torch.FloatTensor
-    ) -> torch.distributions.Distribution:
+    def forward(self, observation: torch.FloatTensor) -> Any:
         if self.discrete:
             return torch.distributions.categorical.Categorical(
                 logits=self.logits_na(observation))
         else:
-            return torch.distributions.multivariate_normal.MultivariateNormal(
-                self.mean_net(observation), torch.diag(torch.exp(self.logstd)))
+            return torch.distributions.normal.Normal(
+                self.mean_net(observation), torch.exp(self.logstd))
 
 
 #####################################################
@@ -125,8 +125,12 @@ class MLPPolicySL(MLPPolicy):
                qvals=None):
         # DONE: update the policy and return the loss
         dist = self(torch.as_tensor(observations, device=ptu.device))
-        log_prob = dist.log_prob(torch.as_tensor(actions, device=ptu.device))
-        loss = self.loss(torch.as_tensor(1), torch.exp(log_prob)).sum()
+        #log_prob = dist.log_prob(torch.as_tensor(actions,
+        #                                         device=ptu.device)).sum(-1)
+        #loss = self.loss(torch.as_tensor(0), log_prob).sum()
+        loss = self.loss(dist.rsample(),
+                         torch.as_tensor(actions, device=ptu.device))
+
         print(loss.item())
         self.optimizer.zero_grad()
         loss.backward()
