@@ -1,0 +1,17 @@
+* The loss function for imitation learning (behavior clone and Dagger)
+** =MSELoss()(dist.rsample(), expert_action)=
+I so this solution [[https://github.com/berkeleydeeprlcourse/homework_fall2021/compare/main...ChoiJangho:main][here]]. I feel this might be the intended solution because in the provided code, there is already a self.loss=MSELoss()
+** =-dist.log_prob().sum(-1).mean()=
+- However, I think this is a better loss because it does not need the exact unnecessary randomness in =dist.rsample()=. As a piece of evidence, I notice this loss will yield a better Eval_AverageReturn with shorter training steps and a smaller training batch size.
+- sum(-1) is to multiply 8 independent gaussian to make a joint Gaussian distribution; mean() instead of sum() so that the gradient contribution of each batch is the same no matter what is the batch_size. sum() will make each sample's contribution the same, so a larger batch_size will have a greater contribution.
+
+
+* Distribution
+** Discrete
+prob: [0, 1]
+log_prob: [-inf, 0]
+** Continuous
+prob==likelihood: [0, +inf]
+log_prob: [-inf, +inf]
+** Normal as indenpendent Gaussian
+- multiply all the prob or sum all the log_prob

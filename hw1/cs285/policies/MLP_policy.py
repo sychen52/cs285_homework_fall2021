@@ -125,13 +125,19 @@ class MLPPolicySL(MLPPolicy):
                qvals=None):
         # DONE: update the policy and return the loss
         dist = self(torch.as_tensor(observations, device=ptu.device))
-        #log_prob = dist.log_prob(torch.as_tensor(actions,
-        #                                         device=ptu.device)).sum(-1)
-        #loss = self.loss(torch.as_tensor(0), log_prob).sum()
-        loss = self.loss(dist.rsample(),
-                         torch.as_tensor(actions, device=ptu.device))
-
+        # sum(-1) is to multiply 8 independent gaussian
+        # to make a joint gaussian distribution
+        log_prob = dist.log_prob(torch.as_tensor(actions,
+                                                 device=ptu.device)).sum(-1)
+        # mean() instead of sum() so that the gradient contribution of
+        # each batch is the same no matter what is the batch_size.
+        # sum() will make each sample's contribution the same,
+        # so a larger batch_size will have a greater contribution.
+        loss = -log_prob.mean()
         print(loss.item())
+        # loss = self.loss(dist.rsample(),
+        #                  torch.as_tensor(actions, device=ptu.device))
+
         self.optimizer.zero_grad()
         loss.backward()
         self.optimizer.step()
