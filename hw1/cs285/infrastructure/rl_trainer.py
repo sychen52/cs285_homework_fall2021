@@ -171,7 +171,29 @@ class RL_Trainer(object):
         if itr == 0:
             with open(load_initial_expertdata, "rb") as f:
                 loaded_paths = pickle.load(f)
-            return loaded_paths, 0, None
+
+            def total_batch_size(paths):
+                ret = 0
+                for path in paths:
+                    ret += path["reward"].shape[0]
+                return ret
+
+            print("total expert data:", total_batch_size(loaded_paths))
+
+            count = 0
+            paths = []
+            for path in loaded_paths:
+                count += path["reward"].shape[0]
+                paths.append(path)
+                if count >= batch_size:
+                    if count > batch_size:
+                        for k, v in paths[-1].items():
+                            paths[-1][k] = v[:-(count - batch_size)]
+                    break
+
+            print("total loaded expert data:", total_batch_size(paths))
+
+            return paths, 0, None
 
         # DONE collect `batch_size` samples to be used for training
         # HINT1: use sample_trajectories from utils

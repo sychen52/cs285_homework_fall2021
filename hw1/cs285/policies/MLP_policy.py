@@ -134,7 +134,6 @@ class MLPPolicySL(MLPPolicy):
         # sum() will make each sample's contribution the same,
         # so a larger batch_size will have a greater contribution.
         loss = -log_prob.mean()
-        print(loss.item())
         # loss = self.loss(dist.rsample(),
         #                  torch.as_tensor(actions, device=ptu.device))
 

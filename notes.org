@@ -15,3 +15,12 @@ prob==likelihood: [0, +inf]
 log_prob: [-inf, +inf]
 ** Normal as indenpendent Gaussian
 - multiply all the prob or sum all the log_prob
+
+* Behaviour Clone (BC) vs. Dagger
+** control total training steps and the model the same
+- For easy experiments like Ant, Dagger is just slightly better than BC (I keep the total training steps the same for BC and Dagger).
+- For hard experiments like Humanoid, Dagger is just 2x better than BC (I keep the total training steps the same for BC and Dagger). I increased the training iteration another 5x (also the amount of data labeled by expert 5x), Dagger is more than 10x better than BC.
+- I this this is partly because Dagger sees much more various data than BC
+** also control the total amount of data the same
+- For easy experiments like Ant, Dagger is just slightly better than BC (I keep the total training steps the same for BC and Dagger).
+- For hard experiments like Humanoid, it is too hard to train a good model with just 2000 data samples (The amount of expert data I have for BC).
