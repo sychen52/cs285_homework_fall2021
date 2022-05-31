@@ -23,8 +23,7 @@ class MLPPolicy(BasePolicy, nn.Module, metaclass=abc.ABCMeta):
                  learning_rate=1e-4,
                  training=True,
                  nn_baseline=False,
-                 **kwargs
-                 ):
+                 **kwargs):
         super().__init__(**kwargs)
 
         # init vars
@@ -50,17 +49,18 @@ class MLPPolicy(BasePolicy, nn.Module, metaclass=abc.ABCMeta):
         else:
             self.logits_na = None
             self.mean_net = ptu.build_mlp(input_size=self.ob_dim,
-                                      output_size=self.ac_dim,
-                                      n_layers=self.n_layers, size=self.size)
+                                          output_size=self.ac_dim,
+                                          n_layers=self.n_layers,
+                                          size=self.size)
             self.logstd = nn.Parameter(
-                torch.zeros(self.ac_dim, dtype=torch.float32, device=ptu.device)
-            )
+                torch.zeros(self.ac_dim,
+                            dtype=torch.float32,
+                            device=ptu.device))
             self.mean_net.to(ptu.device)
             self.logstd.to(ptu.device)
             self.optimizer = optim.Adam(
                 itertools.chain([self.logstd], self.mean_net.parameters()),
-                self.learning_rate
-            )
+                self.learning_rate)
 
         if nn_baseline:
             self.baseline = ptu.build_mlp(
@@ -86,7 +86,20 @@ class MLPPolicy(BasePolicy, nn.Module, metaclass=abc.ABCMeta):
 
     # query the policy with observation(s) to get selected action(s)
     def get_action(self, obs: np.ndarray) -> np.ndarray:
-        # TODO: get this from HW1
+        # DONE: get this from HW1
+        if len(obs.shape) > 1:
+            observation = obs
+        else:
+            observation = obs[None]
+
+        # DONE return the action that the policy prescribes
+        self.eval()
+        with torch.no_grad():
+            action_dist = self(
+                torch.as_tensor(observation,
+                                dtype=torch.float32,
+                                device=ptu.device))
+        return ptu.to_numpy(action_dist.sample())
 
     # update/train this policy
     def update(self, observations, actions, **kwargs):
@@ -113,10 +126,13 @@ class MLPPolicy(BasePolicy, nn.Module, metaclass=abc.ABCMeta):
             )
             return action_distribution
 
+
 #####################################################
 #####################################################
 
+
 class MLPPolicyPG(MLPPolicy):
+
     def __init__(self, ac_dim, ob_dim, n_layers, size, **kwargs):
 
         super().__init__(ac_dim, ob_dim, n_layers, size, **kwargs)
@@ -129,13 +145,13 @@ class MLPPolicyPG(MLPPolicy):
 
         # TODO: update the policy using policy gradient
         # HINT1: Recall that the expression that we want to MAXIMIZE
-            # is the expectation over collected trajectories of:
-            # sum_{t=0}^{T-1} [grad [log pi(a_t|s_t) * (Q_t - b_t)]]
+        # is the expectation over collected trajectories of:
+        # sum_{t=0}^{T-1} [grad [log pi(a_t|s_t) * (Q_t - b_t)]]
         # HINT2: you will want to use the `log_prob` method on the distribution returned
-            # by the `forward` method
+        # by the `forward` method
         # HINT3: don't forget that `optimizer.step()` MINIMIZES a loss
         # HINT4: use self.optimizer to optimize the loss. Remember to
-            # 'zero_grad' first
+        # 'zero_grad' first
 
         TODO
 
@@ -145,9 +161,9 @@ class MLPPolicyPG(MLPPolicy):
             ## of zero and a standard deviation of one.
 
             ## HINT1: use self.baseline_optimizer to optimize the loss used for
-                ## updating the baseline. Remember to 'zero_grad' first
+            ## updating the baseline. Remember to 'zero_grad' first
             ## HINT2: You will need to convert the targets into a tensor using
-                ## ptu.from_numpy before using it in the loss
+            ## ptu.from_numpy before using it in the loss
 
             TODO
 
