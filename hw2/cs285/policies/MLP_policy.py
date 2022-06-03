@@ -143,7 +143,7 @@ class MLPPolicyPG(MLPPolicy):
         actions = ptu.from_numpy(actions)
         advantages = ptu.from_numpy(advantages)
 
-        # TODO: update the policy using policy gradient
+        # DONE: update the policy using policy gradient
         # HINT1: Recall that the expression that we want to MAXIMIZE
         # is the expectation over collected trajectories of:
         # sum_{t=0}^{T-1} [grad [log pi(a_t|s_t) * (Q_t - b_t)]]
@@ -153,10 +153,15 @@ class MLPPolicyPG(MLPPolicy):
         # HINT4: use self.optimizer to optimize the loss. Remember to
         # 'zero_grad' first
 
-        TODO
+        dist = self(observations)
+        log_prob = dist.log_prob(actions)
+        loss = -(log_prob * advantages).sum()
+        self.optimizer.zero_grad()
+        loss.backward()
+        self.optimizer.step()
 
         if self.nn_baseline:
-            ## TODO: update the neural network baseline using the q_values as
+            ## DONE: update the neural network baseline using the q_values as
             ## targets. The q_values should first be normalized to have a mean
             ## of zero and a standard deviation of one.
 
@@ -165,7 +170,14 @@ class MLPPolicyPG(MLPPolicy):
             ## HINT2: You will need to convert the targets into a tensor using
             ## ptu.from_numpy before using it in the loss
 
-            TODO
+            if q_values is not None:
+                q_values = (q_values - q_values.mean()) / q_values.std()
+                q_values = ptu.from_numpy(q_values)
+                q = self.baseline(observations)
+                baseline_loss = self.baseline_loss(q.squeeze(), q_values)
+                self.baseline_optimizer.zero_grad()
+                baseline_loss.backward()
+                self.baseline_optimizer.step()
 
         train_log = {
             'Training Loss': ptu.to_numpy(loss),

@@ -1,7 +1,5 @@
 #! /bin/bash
 
-export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/home/yang/.mujoco/mujoco200/bin
-
 # This is the result the expert policy (I hack the code to get this)
 # Eval_AverageReturn : 4758.9013671875
 # Eval_StdReturn : 102.37667083740234
