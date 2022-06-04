@@ -39,17 +39,37 @@
 # and slightly better performance
 
 # Experiment 5
-b=50000
-r=0.02
-python cs285/scripts/run_hw2.py --env_name HalfCheetah-v2 --ep_len 150 \
---discount 0.95 -n 100 -l 2 -s 32 -b ${b} -lr ${r} \
---exp_name q4_b${b}_r${r}
-python cs285/scripts/run_hw2.py --env_name HalfCheetah-v2 --ep_len 150 \
---discount 0.95 -n 100 -l 2 -s 32 -b ${b} -lr ${r} -rtg \
---exp_name q4_b${b}_r${r}_rtg
-python cs285/scripts/run_hw2.py --env_name HalfCheetah-v2 --ep_len 150 \
---discount 0.95 -n 100 -l 2 -s 32 -b ${b} -lr ${r} --nn_baseline \
---exp_name q4_b${b}_r${r}_nnbaseline
-python cs285/scripts/run_hw2.py --env_name HalfCheetah-v2 --ep_len 150 \
---discount 0.95 -n 100 -l 2 -s 32 -b ${b} -lr ${r} -rtg --nn_baseline \
---exp_name q4_b${b}_r${r}_rtg_nnbaseline
+# b=50000
+# r=0.02
+# python cs285/scripts/run_hw2.py --env_name HalfCheetah-v2 --ep_len 150 \
+# --discount 0.95 -n 100 -l 2 -s 32 -b ${b} -lr ${r} \
+# --exp_name q4_b${b}_r${r}
+# python cs285/scripts/run_hw2.py --env_name HalfCheetah-v2 --ep_len 150 \
+# --discount 0.95 -n 100 -l 2 -s 32 -b ${b} -lr ${r} -rtg \
+# --exp_name q4_b${b}_r${r}_rtg
+# python cs285/scripts/run_hw2.py --env_name HalfCheetah-v2 --ep_len 150 \
+# --discount 0.95 -n 100 -l 2 -s 32 -b ${b} -lr ${r} --nn_baseline \
+# --exp_name q4_b${b}_r${r}_nnbaseline
+# python cs285/scripts/run_hw2.py --env_name HalfCheetah-v2 --ep_len 150 \
+# --discount 0.95 -n 100 -l 2 -s 32 -b ${b} -lr ${r} -rtg --nn_baseline \
+# --exp_name q4_b${b}_r${r}_rtg_nnbaseline
+
+# rtg helps a lot (from explodes to learning)
+# nn_baseline is just a tiny bit better. I think it is because of its high bias.
+# Maybe my baseline implementation is wrong?!
+
+
+
+for lambda in 0 0.95 0.99 1
+do
+    python cs285/scripts/run_hw2.py \
+           --env_name Hopper-v2 --ep_len 1000 \
+           --discount 0.99 -n 300 -l 2 -s 32 -b 2000 -lr 0.001 \
+           --reward_to_go --nn_baseline --action_noise_std 0.5 --gae_lambda $lambda \
+           --exp_name q5_b2000_r0.001_lambda$lambda
+done
+
+# lambda=0, the performance is bad. (no bias but high variance.)
+# The performance of the rest three are similar;
+# however, lambda=1's curve is much more smooth (low variance but has bias).
+# lambda=0.99 has slightly better performance, maybe it is a good balance.

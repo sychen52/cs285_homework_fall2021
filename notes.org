@@ -28,3 +28,12 @@ log_prob: [-inf, +inf]
 
 * Discount factor \gamma
 The effect is that it modifies the MDP by adding a death state. And 1 - \gamma is the probability of transiting into the death state.
+
+* Causality: policy cannot affect the previous reward
+The reason we can remove sum_0^{t-1} is that its expectation is 0. In the lecture, he mentioned the proof is somewhat involved. However, I think there must be some additional requirements for the reward, e.g. centered.
+
+* Baselines in advantage
+To take of b, b must have nothing to do with actions.
+b can be a constant or a function of states.
+The proof of b=const case is simple; however, in lecture 6, he mentioned it can also be proved if b=f(s).
+
