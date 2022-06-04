@@ -93,7 +93,7 @@ def sample_trajectory(env,
         obs.append(ob)
         # HINT: query the policy's get_action function
         ac = policy.get_action(ob)
-        ac = ac[0]
+        ac = ac[0]  # unsqueeze()
         acs.append(ac)
 
         # take that action and record results
