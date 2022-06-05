@@ -19,6 +19,7 @@ class BootstrappedContinuousCritic(nn.Module, BaseCritic):
         Note: batch self.size /n/ is defined at runtime.
         is None
     """
+
     def __init__(self, hparams):
         super().__init__()
         self.ob_dim = hparams['ob_dim']
@@ -30,7 +31,8 @@ class BootstrappedContinuousCritic(nn.Module, BaseCritic):
 
         # critic parameters
         self.num_target_updates = hparams['num_target_updates']
-        self.num_grad_steps_per_target_update = hparams['num_grad_steps_per_target_update']
+        self.num_grad_steps_per_target_update = hparams[
+            'num_grad_steps_per_target_update']
         self.gamma = hparams['gamma']
         self.critic_network = ptu.build_mlp(
             self.ob_dim,
@@ -73,7 +75,7 @@ class BootstrappedContinuousCritic(nn.Module, BaseCritic):
             returns:
                 training loss
         """
-        # TODO: Implement the pseudocode below: do the following (
+        # DONE: Implement the pseudocode below: do the following (
         # self.num_grad_steps_per_target_update * self.num_target_updates)
         # times:
         # every self.num_grad_steps_per_target_update steps (which includes the
@@ -86,5 +88,14 @@ class BootstrappedContinuousCritic(nn.Module, BaseCritic):
         #       to 0) when a terminal state is reached
         # HINT: make sure to squeeze the output of the critic_network to ensure
         #       that its dimensions match the reward
-
+        for i in range(self.num_target_updates):
+            Vs_prime = self.forward_np(next_ob_no)
+            target = reward_n + self.gamma * Vs_prime * (1 - terminal_n)
+            target = ptu.from_numpy(target)
+            for j in range(self.num_grad_steps_per_target_update):
+                Vs = self(ptu.from_numpy(ob_no))
+                loss = self.loss(Vs.squeeze(), target)
+                self.optimizer.zero_grad()
+                loss.backward()
+                self.optimizer.step()
         return loss.item()
