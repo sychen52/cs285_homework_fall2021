@@ -8,6 +8,7 @@
 # These two works
 # ntu 1 ngsptu 100
 # ntu 10 ngsptu 10
+
 ntu=1
 ngsptu=100
 python cs285/scripts/run_hw3_actor_critic.py --env_name InvertedPendulum-v2 --ep_len 1000 --discount \
