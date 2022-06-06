@@ -53,7 +53,8 @@ class BootstrappedContinuousCritic(nn.Module, BaseCritic):
 
     def forward_np(self, obs):
         obs = ptu.from_numpy(obs)
-        predictions = self(obs)
+        with torch.no_grad():
+            predictions = self(obs)
         return ptu.to_numpy(predictions)
 
     def update(self, ob_no, ac_na, next_ob_no, reward_n, terminal_n):

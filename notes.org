@@ -41,3 +41,12 @@ The proof of b=const case is simple; however, in lecture 6, he mentioned it can 
 hw2 bonus question is to make sample_trajectories multithread. However, after multi-threading, it is much slower (the more threads, the slower). I guess, 1) something under the hood does not release GIL, for example, gym? 2) it is already fast on my machine < 1ms, so the overhead of thread is more significant.
 Multiprocess does not work because it uses fork, and CUDA does not work on fork.
 P.S. batch_size = 50k
+
+* Fitted Q/value-iteration and Actor-Critic do not guarantee to converge.
+- Q/value-iteration (Bellman equation part) converges
+- Deep learning fits the Q/value function part also converges
+- However, the combination of these two no longer guarantees to converge.
+- For the same reason, the critic part in AC does not guarantee to converge either.
+  
+  
+
