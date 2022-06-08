@@ -15,7 +15,7 @@ class DQNCritic(BaseCritic):
         self.ob_dim = hparams['ob_dim']
 
         if isinstance(self.ob_dim, int):
-            self.input_shape = (self.ob_dim,)
+            self.input_shape = (self.ob_dim, )
         else:
             self.input_shape = hparams['input_shape']
 
@@ -29,9 +29,7 @@ class DQNCritic(BaseCritic):
         self.q_net = network_initializer(self.ob_dim, self.ac_dim)
         self.q_net_target = network_initializer(self.ob_dim, self.ac_dim)
         self.optimizer = self.optimizer_spec.constructor(
-            self.q_net.parameters(),
-            **self.optimizer_spec.optim_kwargs
-        )
+            self.q_net.parameters(), **self.optimizer_spec.optim_kwargs)
         self.learning_rate_scheduler = optim.lr_scheduler.LambdaLR(
             self.optimizer,
             self.optimizer_spec.learning_rate_schedule,
@@ -64,10 +62,12 @@ class DQNCritic(BaseCritic):
         terminal_n = ptu.from_numpy(terminal_n)
 
         qa_t_values = self.q_net(ob_no)
-        q_t_values = torch.gather(qa_t_values, 1, ac_na.unsqueeze(1)).squeeze(1)
-        
-        # TODO compute the Q-values from the target network 
-        qa_tp1_values = TODO
+        q_t_values = torch.gather(qa_t_values, 1,
+                                  ac_na.unsqueeze(1)).squeeze(1)
+
+        # DONE compute the Q-values from the target network
+        with torch.no_grad():
+            qa_tp1_values = self.q_net_target(next_ob_no)
 
         if self.double_q:
             # You must fill this part for Q2 of the Q-learning portion of the homework.
@@ -75,14 +75,19 @@ class DQNCritic(BaseCritic):
             # is being updated, but the Q-value for this action is obtained from the
             # target Q-network. Please review Lecture 8 for more details,
             # and page 4 of https://arxiv.org/pdf/1509.06461.pdf is also a good reference.
-            TODO
+
+            with torch.no_grad():
+                qa_values_phi = self.q_net(next_ob_no)
+                _, ind = torch.max(qa_values_phi, dim=1)
+                q_tp1 = torch.gather(qa_tp1_values, 1, ind.view(-1,
+                                                                1)).squeeze(1)
         else:
             q_tp1, _ = qa_tp1_values.max(dim=1)
 
-        # TODO compute targets for minimizing Bellman error
+        # DONE compute targets for minimizing Bellman error
         # HINT: as you saw in lecture, this would be:
-            #currentReward + self.gamma * qValuesOfNextTimestep * (not terminal)
-        target = TODO
+        #currentReward + self.gamma * qValuesOfNextTimestep * (not terminal)
+        target = reward_n + self.gamma * q_tp1 * (1 - terminal_n)
         target = target.detach()
 
         assert q_t_values.shape == target.shape
@@ -90,7 +95,8 @@ class DQNCritic(BaseCritic):
 
         self.optimizer.zero_grad()
         loss.backward()
-        utils.clip_grad_value_(self.q_net.parameters(), self.grad_norm_clipping)
+        utils.clip_grad_value_(self.q_net.parameters(),
+                               self.grad_norm_clipping)
         self.optimizer.step()
         self.learning_rate_scheduler.step()
         return {
@@ -98,9 +104,8 @@ class DQNCritic(BaseCritic):
         }
 
     def update_target_network(self):
-        for target_param, param in zip(
-                self.q_net_target.parameters(), self.q_net.parameters()
-        ):
+        for target_param, param in zip(self.q_net_target.parameters(),
+                                       self.q_net.parameters()):
             target_param.data.copy_(param.data)
 
     def qa_values(self, obs):
