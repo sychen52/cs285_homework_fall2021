@@ -47,6 +47,10 @@ P.S. batch_size = 50k
 - Deep learning fits the Q/value function part also converges
 - However, the combination of these two no longer guarantees to converge.
 - For the same reason, the critic part in AC does not guarantee to converge either.
-  
-  
+
+* Make sample_trajactory multithread / multiprocess
+- before multithread / multiprocess, only one CPU is used at 100%. Even without setting the OPENBLAS_NUM_THREADS=1.
+- multithread works; however, all CPUs work at ~10%, and the total time is 3x longer than single thread.
+- multiprocess crashes (because of the way torch uses CUDA. Some extra work is needed to get this work.); however, all CPUs go to 100% before crash.
+- I think something (env or torch) does not release GIL.
 
