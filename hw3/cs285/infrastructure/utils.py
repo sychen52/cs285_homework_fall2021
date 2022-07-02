@@ -106,7 +106,8 @@ def sample_trajectory(env,
 
         # DONE end the rollout if the rollout ended
         # HINT: rollout can end due to done, or due to max_path_length
-        rollout_done = 1 if done else 0  # HINT: this is either 0 or 1
+        rollout_done = 1 if done or len(
+            rewards) >= max_path_length else 0  # HINT: this is either 0 or 1
         terminals.append(rollout_done)
 
         if rollout_done:

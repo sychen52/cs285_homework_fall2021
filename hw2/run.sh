@@ -12,6 +12,8 @@
 # -rtg -dsa --exp_name q1_lb_rtg_dsa
 # python cs285/scripts/run_hw2.py --env_name CartPole-v0 -n 100 -b 5000 \
 # -rtg --exp_name q1_lb_rtg_na
+# small batch size only works when you have both rtg and standardize advantage(sa)
+# large batch size is more robust, works even without rtg and sa
 
 #python cs285/scripts/run_hw2.py --env_name InvertedPendulum-v2 \
 #--ep_len 1000 --discount 0.9 -n 100 -l 2 -s 64 -b 300 -lr 1e-2 -rtg \
